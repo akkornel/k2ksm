@@ -52,3 +52,8 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+# Let's also ignore Eclipse project settings
+.settings
+
+# Mac OS X directory stuff
+.DS_Store
