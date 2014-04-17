@@ -1,0 +1,37 @@
+k2ksm SECURITY:
+
+k2ksm attempts to treat private information securely, but the author admits that everything has limits, including k2ksm.  This document attempts to describe how k2ksm keeps information private, and areas where it does not.
+
+Physical Level:
+
+The default configuration for k2ksm keeps data secure at rest using the cryptoloop and dm_crypto features of Linux.  This functionality is similar to an encrypted read-write disk image on the Mac: Three disk images are used, two for the internal component (one for database and one for temp. data) and one for the external component (for temp. data).  Mounting the disk images requires knowing the password associated with the disk image (cryptoloop can store up to 8 passwords per image).
+
+Cryptoloop protects k2ksm's data at rest, and using cryptoloop for the temp. data directories reduces the risk of exposure that comes when someone pulls the plug and takes the disk during the middle of any operation that writes sensitive temp. data to disk.
+
+RAM:
+
+At this time, k2ksm does not provide any protection of data in random access memory, except for the protection automatically provided by the operating system (see "Users and Groups", below).  This limitation comes from the choice of programming language; at this time, the author is not aware of any stable Python 2 enhancement that is able to wipe memory.
+
+Users and Groups:
+
+k2ksm relies on the operating system to enforce permissions to keep other users from accessing k2ksm data.  The internal and external components of k2ksm operate under separate accounts, but are both members of the same group.  The only group-readable file is the socket that the internal and external components use to communicate.  The only world-readable files are the PID files that each component creates when started.
+
+k2ksm uses syslog for data logging; protections on log files are up to the administrator of the system.  If k2ksm is logging debugging information, sensitive information WILL be logged.
+
+Separated Components:
+
+As has been mentioned already, k2ksm has two components, an internal and an external component.  The internal component does all of the crypto work, including generating keys, validating TOTP codes, etc.  The internal component is also the owner of the database files.  The internal component is also responsible for reaching out to external AD servers, though those connections are always outgoing, never incoming.
+
+The external component is responsible for communicating with clients, parsing requests, communicating those requests to the internal component, and returning results to the client.  The external component is the only software which accepts connections from outside of the machine.
+
+Modules:
+
+Different groups of functionality (such as AES key generation and YubiOTP authentication) are handled by different modules, which are loaded by each component at startup.  Modules are only loaded when the administrator calls for them, so unnecessary modules can avoid being loaded, and so the administrator can be more aware of module dependencies (for example, HOTP validation requires the AES module).
+
+That being said, modules typically trust of other modules.  For example, if the TOTP module asks the AES module for the private key belonging to a user, the AES module will make sure that key belongs to the specified user, and that the key has already been associated with the TOTP module, but the AES module will not look any deeper into the request.
+
+Network Connectivity:
+
+The k2ksm internal component only accepts connections on a local UNIX socket, and the permissions on that socket are such that only the internal and public-facing components have access.  In addition, traffic over the UNIX socket is encrypted.
+
+If anyone is interested, one possible enhancement is to allow a serial connection to be used for communication between the internal and public-facing components.  Such an enhancement would allow the internal component to live on an almost-completely-disconnected server, accepting incoming connections only via the serial port.
