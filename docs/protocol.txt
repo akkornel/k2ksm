@@ -1,0 +1,64 @@
+THE k2ksm PROTOCOL:
+
+
+k2ksm uses a text-based protocol for communication between the client and the server.  The connection between client and server happens over SSH, and so encryption/authentication of the connection is handled entirely by SSH.  The connection between the server's public-facing component (which the clients talk to) and the private component happen through a local UNIX socket, and use AES-******** in ******* mode for encyption and authenticaiton.
+
+The k2ksm client-server connection uses a call-and-response system of communication, with single-line commands and multi-line data.  Here is an example communication between client and server.  In the following example, an administrator connects to the server, authenticates and creates a new user.
+
+[Client initiates connection]
+[Server accepts connection]
+Server: READY 1
+Client: AUTH TOTP akkornel 123456
+Server: OK
+Server: READY 1
+Client: USER CREATE smithj
+Server: MORE
+Client: {
+Client: "GivenName": "John"
+Client: "Surname": "Smith"
+Client: }
+Client: .
+Server: OK
+Server: {
+Server: "Username": "smithj"
+Server: "UID": "345234"
+Server: }
+Server: READY 1
+Client: QUIT
+Server: OK
+Server: BYE
+[Server closes connection]
+
+
+Clients have XXXX groups of commands:
+
+AES
+AUTH
+GET
+HOTP
+QUIT
+SET
+TOTP
+USER
+YUBIOTP
+
+For more information on the above commands, see the files inside the docs/commands directory.  For examples, see the files inside the docs/examples directory.
+
+The server has five possible responses:
+
+BYE
+MORE
+NOK
+OK
+READY
+
+* READY is the first message sent by the server when the connection is opened, and when the previous command has been completed.  The READY message tells the server that the server is ready for the client to send a command.  The READY message is also used to tell the client what protocol version is being used by the server.
+
+* MORE is sent by the server when the client issues a command that requires more data than what will fit on the command line.  For example, when creating a new user, the client must provide the first & last name of the user.  That information is provided to the server in JSON format, once the server has asked the client for MORE information.
+
+* OK is sent by the server when the client's command has executed successfully.  Depending on the command being executed, after the OK response, the server may provide additional information to the client.  This information will be sent to the client after the OK response, but before the READY message.
+
+* NOK is sent by the server when the client's command has failed.  After the NOK response, the server will normally provide some explanation for the failure.
+
+* BYE is send by the server immediately before a clean disconnect.
+
