@@ -1,4 +1,8 @@
 language: python
 python:
-	- "2.7"
-install: "pip install -r requirements.txt"
+  - 2.7
+install:
+  - pip install -r requirements.txt
+script:
+  # Automatically fail until we actually have unit tests to run!
+  - exit 1
