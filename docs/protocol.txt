@@ -59,7 +59,11 @@ READY
 
 * OK is sent by the server when the client's command has executed successfully.  Depending on the command being executed, after the OK response, the server may provide additional information to the client.  This information will be sent to the client after the OK response, but before the READY message.
 
-* NOK is sent by the server when the client's command has failed.  After the NOK response, the server will normally provide some explanation for the failure.
+* NOK is sent by the server when the client's command has failed.  After the NOK response, the server will normally provide some explanation for the failure.  Explanations are delivered in JSON format, and contain the following keys:
+
+- *module*: The name of the module that raised the error.
+- *code*: An error code unique to the module.  See the module's documentation for more information.
+- *details*: The details of the error, in human-readable format.
 
 * BYE is send by the server immediately before a clean disconnect.
 
