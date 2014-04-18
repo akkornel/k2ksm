@@ -1,0 +1,5 @@
+# This file contains the list of stuff from the PyPI that you need when doing a release of k2ksm.
+# The easiest way to install everything is to just run `pip -r requirements_release.txt`.
+
+# We need docutils to build the package documentation.
+docutils
