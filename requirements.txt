@@ -2,11 +2,11 @@
 # The easiest way to install everything is to just run `pip -r requirements.txt`.
 
 # PyCrypto does the heavy lifting for AES
-PyCrypto>=2.6.1
+#PyCrypto>=2.6.1
 
 # Python-OATH is used for the verification of HOTP and TOTP codes
-oath>=1.2
+#oath>=1.2
 
 # qrcode and Pillow are used to generate QR codes
-pillow>=2.4
-qrcode>=4.0.4
+#pillow>=2.4
+#qrcode>=4.0.4
