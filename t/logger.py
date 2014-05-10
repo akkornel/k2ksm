@@ -15,7 +15,7 @@ except:
     path.append('..')
     from k2ksm import logger
     
-# Get the version number.  Test skipping came in 2.7.
+# Get the version number.  Test skipping and expected failures came in 2.7.
 majorVer, minorVer = version_info[:2]
 canSkip = False
 if (   (majorVer >= 3)
@@ -39,17 +39,19 @@ class K2LoggerTests(unittest.TestCase):
             # Creating a logger with something non-str()able should fail
             pass
 
-    @unittest.expectedFailure
-    def test_namePrefix_set(self):
-        # Trying to set the namePrefix should fail
-        l = logger.K2Logger('Karl')
-        l.namePrefix = 'SomeoneElse'
+    if canSkip:
+        @unittest.expectedFailure
+        def test_namePrefix_set(self):
+            # Trying to set the namePrefix should fail
+            l = logger.K2Logger('Karl')
+            l.namePrefix = 'SomeoneElse'
     
-    @unittest.expectedFailure
-    def test_namePrefix_delete(self):
-        # Trying to delete the namePrefix should fail
-        l = logger.K2Logger('Karl')
-        del l.namePrefix
+    if canSkip:
+        @unittest.expectedFailure
+        def test_namePrefix_delete(self):
+            # Trying to delete the namePrefix should fail
+            l = logger.K2Logger('Karl')
+            del l.namePrefix
     
     
     def test_logger(self):
@@ -57,17 +59,19 @@ class K2LoggerTests(unittest.TestCase):
         l = logger.K2Logger('Karl')
         self.assertIsInstance(l.logger, logging.Logger)
         
-    @unittest.expectedFailure
-    def test_logger_set(self):
-        # We shouldn't be able to replace the logger
-        l = logger.K2Logger('Karl')
-        l.logger = logging.getLogger('Hello!')
-        
-    @unittest.expectedFailure
-    def test_logger_delete(self):
-        # We shouldn't be able to delete the logger
-        l = logger.K2Logger('Karl')
-        del l.logger
+    if canSkip:
+        @unittest.expectedFailure
+        def test_logger_set(self):
+            # We shouldn't be able to replace the logger
+            l = logger.K2Logger('Karl')
+            l.logger = logging.getLogger('Hello!')
+    
+    if canSkip:
+        @unittest.expectedFailure
+        def test_logger_delete(self):
+            # We shouldn't be able to delete the logger
+            l = logger.K2Logger('Karl')
+            del l.logger
         
     
     # TODO: Add test cases for logToStderr, logToSyslog, and loggerForModule
@@ -77,9 +81,10 @@ class K2LoggerTests(unittest.TestCase):
         
 # List the tests and create a test suite, for use by the top-level test script.
 tests = ('test_create',
-         'test_namePrefix_set', 'test_namePrefix_delete',
-         'test_logger', 'test_logger_set', 'test_logger_delete')
-skippedTests = ('test_create_badName')
+         'test_logger')
+skippedTests = ('test_create_badName',
+                'test_namePrefix_set', 'test_namePrefix_delete',
+                'test_logger_set', 'test_logger_delete')
 if canSkip:
     K2LoggerTestSuite = unittest.TestSuite(map(K2LoggerTests, tests, skippedTests))
 else:
