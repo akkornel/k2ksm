@@ -30,7 +30,7 @@ class K2LoggerTests(unittest.TestCase):
     def test_create(self):
         # Creating a logger with a valid name should pass
         l = logger.K2Logger('Karl')
-        self.assertIsInstance(l, logger.K2Logger)
+        self.assertTrue(isinstance(l, logger.K2Logger))
     
     # Skipping is allowed in 3+ or 2.7+
     if canSkip:
@@ -57,7 +57,7 @@ class K2LoggerTests(unittest.TestCase):
     def test_logger(self):
         # The logger attribute should be a Logger object
         l = logger.K2Logger('Karl')
-        self.assertIsInstance(l.logger, logging.Logger)
+        self.assertTrue(isinstance(l.logger, logging.Logger))
         
     if canSkip:
         @unittest.expectedFailure
