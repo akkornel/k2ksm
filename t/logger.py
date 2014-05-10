@@ -86,7 +86,7 @@ skippedTests = ('test_create_badName',
                 'test_namePrefix_set', 'test_namePrefix_delete',
                 'test_logger_set', 'test_logger_delete')
 if canSkip:
-    K2LoggerTestSuite = unittest.TestSuite(map(K2LoggerTests, tests, skippedTests))
+    K2LoggerTestSuite = unittest.TestSuite(map(K2LoggerTests, (tests + skippedTests)))
 else:
     K2LoggerTestSuite = unittest.TestSuite(map(K2LoggerTests, tests))
 
