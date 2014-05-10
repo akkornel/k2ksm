@@ -10,8 +10,3 @@ oath>=1.2
 # qrcode and Pillow are used to generate QR codes
 pillow>=2.4
 qrcode>=4.0.4
-
-# We also use the following modules that come with Python:
-#  base64
-#  json
-#  os
