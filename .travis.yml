@@ -5,5 +5,4 @@ python:
 install:
   - pip install -r requirements.txt
 script:
-  # Automatically fail until we actually have unit tests to run!
-  - exit 1
+  - test.py
