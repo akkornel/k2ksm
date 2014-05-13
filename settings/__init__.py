@@ -239,6 +239,22 @@ class K2SettingsModule(object):
     
     
     @abstractmethod
+    def required(self, name):
+        '''
+        Returns true if the setting must be set before settings are finalized.
+        
+        @param name: The name of the setting.
+        @type name: A string.
+        
+        @return: A Boolean: True if the setting can be changed after server
+        start; false otherwise.
+        
+        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        '''
+        pass
+    
+    
+    @abstractmethod
     def default(self, name):
         '''
         Returns the default value for a setting, or None if the setting does
