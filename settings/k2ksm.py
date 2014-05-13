@@ -2,7 +2,15 @@ from . import K2SettingsModule
 
 __all__ = ('K2KSMSettings')
 
-settings = {'OverrideCounter': {'description': "If set, the value specified " +
+settings = {'ServerPrivate': {'description': "If True, this is the private " +
+                                             "side of the server.  " +
+                                             "Otherwise, this is the public-" +
+                                             "facing server.",
+                              'perSession': False,
+                              'mutable': False,
+                              'required': True,
+                              },
+            'OverrideCounter': {'description': "If set, the value specified " +
                                                "will be used as the current " +
                                                "counter value for all " +
                                                "counter-based authenticators.",
@@ -23,6 +31,7 @@ settings = {'OverrideCounter': {'description': "If set, the value specified " +
                                         "be changed.",
                          'perSession': False,
                          'mutable': False,
+                         'default': False,
                          },
             }
 
@@ -56,6 +65,13 @@ class K2KSMSettings(K2SettingsModule):
         return settings[name]['mutable']
     
     @staticmethod
+    def required(name):
+        if ('required' in settings[name]):
+            return settings[name]['required']
+        else:
+            return False
+    
+    @staticmethod
     def default(name):
         if ('default' in settings[name]):
             return settings[name]['default']
@@ -63,5 +79,5 @@ class K2KSMSettings(K2SettingsModule):
             return None
     
     def valid(self, name, value):
-        # TODO
+        # TODO: Fill this in!
         pass
