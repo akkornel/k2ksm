@@ -243,6 +243,8 @@ class K2SettingsModule(object):
         '''
         Returns true if the setting must be set before settings are finalized.
         
+        NOTE: Settings that are required should not have a default.
+        
         @param name: The name of the setting.
         @type name: A string.
         
@@ -350,9 +352,13 @@ class K2SettingsModule(object):
         
         @raise K2SettingUnknown: Thrown if the setting's name is not recognized.
         @raise K2SettingImmutable: Thrown if the setting can not be changed.
+        @raise ???: Thrown if the setting is required
         '''
         if (not self.mutable(key)):
             # raise ?????
             # TODO
             pass
+        if (not self.required(key)):
+            # raise ?????
+            # TODO
         del self.settings[key]
