@@ -53,8 +53,9 @@ class K2Settings(object):
     __moduleSettings = {}
     '''
     @ivar: A hash of a hash of K2SettingsModule objects.  The first key is
-    the name of the module; the second key is the session ID (to store session-
-    specific settings), or zero (to store server-wide settings).
+    the session ID (to store session-specific settings) or zero (to store
+    server-wide settings); the second key is the module ID (such as "K2KSM" or
+    "TOTP").
     '''
     
     finalized = False
@@ -238,7 +239,7 @@ class K2Settings(object):
             # We have a registered module!  Load the settings
             for setting in self.__unusedSettings[module]:
                 self.logger.debug('Loading setting %s.%s' % (module, setting))
-                self.__moduleSettings[0][setting] = \
+                self.__moduleSettings[0][module][setting] = \
                     self.__unusedSettings[module][setting]
                 
             # At this point, the unused settings have been loaded, so clean up
@@ -271,7 +272,7 @@ class K2Settings(object):
         self.logger.debug('Module %s is registering settings' % moduleID)
         
         # Validation
-        if (moduleID in self.__moduleSettings):
+        if (moduleID in self.__moduleSettings[0]):
             raise KeyError("moduleID %s already registered" % moduleID)
         if (not issubclass(settingsClass, K2SettingsModule)):
             raise TypeError('settingsModule must inherit from '
@@ -284,10 +285,10 @@ class K2Settings(object):
         self.__moduleClasses[moduleID] = settingsClass
         if (settings == None):
             self.logger.debug('Creating fresh settings for %s' % moduleID)
-            self.__moduleClasses[moduleID][0] = settingsClass()
+            self.__moduleSettings[0][moduleID] = settingsClass()
         else:
             self.logger.debug('Using provided settings for %s' % moduleID)
-            self.__moduleClasses[moduleID][0] = settings
+            self.__moduleSettings[0][moduleID] = settings
             
         # Check to see if we can now use some loaded, but unused, settings
         self.processUnused(moduleID)
