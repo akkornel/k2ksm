@@ -36,13 +36,11 @@ class K2SettingsTests(unittest.TestCase):
     
 
     def test_create(self):
-        print id(self.s)
         # Creating a basic settings object should pass
         self.assertTrue(isinstance(self.s, settings.K2Settings))
         
     
     def test_loadArgs(self):
-        print id(self.s)
         # We should be able to load some number of arguments
         args = []
         modules = {}
@@ -66,21 +64,18 @@ class K2SettingsTests(unittest.TestCase):
                           len(modules))
         
     def test_loadArgs_emptyList(self):
-        print id(self.s)
         # We should be able to loadArgs with an empty list
         self.s.loadArgs(())
         self.assertEquals(len(self.s._K2Settings__unusedSettings), 0)
         
     if canSkipOrFail:
         def test_loadArgs_oddList(self):
-            print id(self.s)
             # We should NOT be able to loadArgs with an odd-numbered list
             args = ('module.setting',)
             self.assertRaises(IndexError, self.s.loadArgs, args)
     
     if canSkipOrFail:
         def test_loadArgs_finalized(self):
-            print id(self.s)
             # We should be able to loadArgs after settings have been finalized
             args = ('module.setting', '15')
             self.s.finalize()
@@ -95,7 +90,6 @@ class K2SettingsTests(unittest.TestCase):
     # TODO: Test register(), we'll probably need to make our own basic class
     
     def test_finalize(self):
-        print id(self.s)
         # We should be able to finalize an empty object
         self.s.finalize()
         self.assertEquals(len(self.s._K2Settings__unusedSettings), 0)
