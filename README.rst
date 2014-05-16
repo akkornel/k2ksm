@@ -1,3 +1,8 @@
+.. image:: https://travis-ci.org/akkornel/k2ksm.svg?branch=master
+    :target: https://travis-ci.org/akkornel/k2ksm
+.. image:: https://coveralls.io/repos/akkornel/k2ksm/badge.png?branch=master
+  :target: https://coveralls.io/r/akkornel/k2ksm?branch=master
+
 ===============================================
 k2ksm: A key storage and authentication system.
 ===============================================
