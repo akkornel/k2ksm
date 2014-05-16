@@ -324,6 +324,49 @@ class K2Settings(object):
         self.processUnused(moduleID)
         
     
+    def newSession(self, sessionID):
+        '''
+        Prepare to store settings for a new session.
+        
+        This is called when a new session has been started, and we might
+        need to store session-specific settings.  Creating new instances is
+        done lazily, in order to do things quickly.
+        
+        @param sessionID: The unique ID of the session.  It must B{NOT} be 0.
+        
+        @raise KeyError: Thrown if C{sessionID} already exists, or if it is 0.
+        '''
+        
+        # Validation
+        if (sessionID in self.__moduleSettings):
+            raise KeyError('Session ID %s already exists' % str(sessionID))
+        
+        # Be lazy.  Only create instances when we actually need to
+        self.__moduleSettings[sessionID] = {}
+        
+    
+    def delSession(self, sessionID):
+        '''
+        Delete session-specific settings.
+        
+        This is called when a session has ended, and we need to clean up any
+        session-specific settings.
+        
+        @param sessionID: The unique ID of the session.  It must B{NOT} be 0.
+        
+        @raise KeyError: Thrown if C{sessionID} does not exist.
+        
+        @raise ValueError: Thrown if C{sessionID} is 0.
+        '''
+        
+        # Validation
+        if (sessionID == 0):
+            raise ValueError('Session ID 0 may not be deleted')
+        
+        del self.__moduleSettings[sessionID]
+        
+        
+    
     def finalize(self):
         '''
         This is called by the server after everything has been initially
