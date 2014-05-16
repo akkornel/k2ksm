@@ -33,58 +33,38 @@ class K2Settings(object):
     module ID), with the value being a K2SettingsModule object.
     
     4) Settings are checked & changed as needed.
-    '''
 
-    __unusedSettings = {}
-    '''
-    @ivar: A 2-dimensional array of settings that have been
+
+    @ivar __unusedSettings: A 2-dimensional array of settings that have been
     pulled in by L{loadArgs} or L{loadConfig}, but which haven't
     yet been given to a module (because the module hasn't registered yet).
     Only server-wide settings can be placed here.
-    '''
 
-    __moduleClasses = {}
-    '''
-    @ivar: A hash of K2SettingsModule classes.  The key is the name of the
+    @ivar __moduleClasses: A hash of K2SettingsModule classes.  The key is the name of the
     module; the value is a class.  This is where we go if we need to make
     more instances of K2SettingsModule objects.  This normally happens when
     we need to store session-specific settings.
-    '''
-    
-    __moduleSettings = {}
-    '''
-    @ivar: A hash of a hash of K2SettingsModule objects.  The first key is
+
+    @ivar __moduleSettings: A hash of a hash of K2SettingsModule objects.  The first key is
     the session ID (to store session-specific settings) or zero (to store
     server-wide settings); the second key is the module ID (such as "K2KSM" or
     "TOTP").
-    '''
-    
-    finalized = False
-    '''
-    @ivar: Set to true once all modules have been registered.
-    @type: Boolean
-    '''
-    
-    logger = None
-    '''
-    @ivar: A K2Logger object that we can use.
-    @type: K2Logger
-    '''
-    
-    configArgs = None
-    '''
-    @ivar: The source of command-line arguments.
+
+    @ivar finalized: Set to true once all modules have been registered.
+    @type finalized: Boolean
+
+    @ivar logger: A K2Logger object that we can use.
+    @type logger: K2Logger
+
+    @ivar configArgs: The source of command-line arguments.
     This is set when loadArgs() is called.  If set to None, then loadArgs()
     was never called.
-    @type: String
-    '''
-    
-    configPath = None
-    '''
-    @ivar: The path to the configuration file.
+    @type configArgs: String
+
+    @ivar configPath: The path to the configuration file.
     This is set when loadConfig is called.  If set to None, then loadConfig()
     was never called.
-    @type: String
+    @type configPath: String
     '''
 
     
@@ -102,7 +82,16 @@ class K2Settings(object):
         @raise TypeError: Thrown if logger is not a K2Logger object.
         '''
         
-        # Just set up the logger
+        # Initialize everything
+        self.__unusedSettings = {}
+        self.__moduleClasses = {}
+        self.__moduleSettings = {}
+        self.finalized = False
+        self.logger = None
+        self.configArgs = None
+        self.configPath = None
+        
+        # Set up the logger
         if (not isinstance(logger, K2Logger)):
             raise TypeError('logger must be a K2Logger object')
         self.logger = logger.loggerForModule('Settings')
