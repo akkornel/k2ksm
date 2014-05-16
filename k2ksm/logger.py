@@ -6,6 +6,7 @@ Created on May 9, 2014
 
 import logging
 import logging.handlers
+from os import devnull
 from sys import platform, stderr
 
 
@@ -48,6 +49,13 @@ class K2Logger(object):
         
         self.__logger = logging.getLogger(self.__namePrefix)
         self.__logger.propagate = False
+        
+        # Create a Null logger.
+        # If we intentionally decide to not log to anything, we still need at
+        # least one active handler, otherwise the logger complains.
+        nullfile = open(devnull, 'w')
+        self.__nullHandler = logging.StreamHandler(nullfile)
+        self.__logger.addHandler(self.__nullHandler)
         
         # Prepare for logging to stderr
         self.__logStderrHandler = logging.StreamHandler(stderr)
