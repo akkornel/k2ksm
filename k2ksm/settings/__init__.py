@@ -300,7 +300,8 @@ class K2Settings(object):
         
         # Validation
         if (self.finalized):
-            raise K2FinalizeError('Can not register %s, settings finalized' % moduleID)
+            raise K2FinalizeError('Can not register %s, settings finalized' \
+                                  % moduleID)
         if (moduleID in self.__moduleSettings[0]):
             raise KeyError("moduleID %s already registered" % moduleID)
         if (not issubclass(settingsClass, K2SettingsModule)):
