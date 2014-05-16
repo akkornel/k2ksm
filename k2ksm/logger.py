@@ -106,7 +106,7 @@ class K2Logger(object):
         return self.__logToStderr
     
     @logToStderr.setter
-    def logToStderr_set(self, value):
+    def logToStderr(self, value):
         if (value == True):
             if (self.__logToStderr == False):
                 self.__logger.addHandler(self.__logStderrHandler)
@@ -140,7 +140,7 @@ class K2Logger(object):
         return self.__logToSyslog
     
     @logToSyslog.setter
-    def logToSyslog_set(self, value):
+    def logToSyslog(self, value):
         if (value == True):
             if (self.__logToSyslog == False):
                 if (self.__logSyslogHandler == None):
