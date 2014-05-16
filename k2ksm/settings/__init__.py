@@ -487,19 +487,15 @@ class K2SettingsModule(object):
     instance!  The server process will likely create 2+ instances of this
     class:  One instance will hold all of the server-wide settings; the
     other instances will hold session-specific settings.
+    
+    @ivar settings: If L{K2SettingsModule} is being allowed to store the
+    settings, then is where settings are stored.
+    @type settings: Hash
     '''
     
     # We're an abstract base class
     # @undocumented: __metaclass__
     __metaclass__ = ABCMeta
-
-    
-    settings = {}
-    '''
-    @ivar: If L{K2SettingsModule} is being allowed to store the settings, then
-    is where settings are stored.
-    @type: Hash
-    '''
     
     
     @abstractmethod
@@ -628,6 +624,11 @@ class K2SettingsModule(object):
         @raise KeyError: Thrown if the setting name is not recognized.
         '''
     pass
+
+
+    def __init__(self):
+        # Just set initial values for our one instance variable
+        self.settings = {}
 
 
     def __len__(self):
