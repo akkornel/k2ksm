@@ -5,7 +5,7 @@ Created on May 9, 2014
 '''
 import unittest
 import logging
-from sys import version_info
+from ._util import canSkipOrFail
 
 # If we're being run directly, then we need to add the parent dir to path
 try:
@@ -15,13 +15,6 @@ except:
     path.append('..')
     from k2ksm import logger
     
-# Get the version number.  Test skipping and expected failures came in 2.7.
-majorVer, minorVer = version_info[:2]
-canSkip = False
-if (   (majorVer >= 3)
-    or (minorVer >= 7)
-       ):
-    canSkip = True
 
 
 class K2LoggerTests(unittest.TestCase):
@@ -33,20 +26,20 @@ class K2LoggerTests(unittest.TestCase):
         self.assertTrue(isinstance(l, logger.K2Logger))
     
     # Skipping is allowed in 3+ or 2.7+
-    if canSkip:
+    if canSkipOrFail:
         @unittest.skip("I don't know what object won't give me a str() output")
         def test_create_badName(self):
             # Creating a logger with something non-str()able should fail
             pass
 
-    if canSkip:
+    if canSkipOrFail:
         @unittest.expectedFailure
         def test_namePrefix_set(self):
             # Trying to set the namePrefix should fail
             l = logger.K2Logger('Karl')
             l.namePrefix = 'SomeoneElse'
     
-    if canSkip:
+    if canSkipOrFail:
         @unittest.expectedFailure
         def test_namePrefix_delete(self):
             # Trying to delete the namePrefix should fail
@@ -59,14 +52,14 @@ class K2LoggerTests(unittest.TestCase):
         l = logger.K2Logger('Karl')
         self.assertTrue(isinstance(l.logger, logging.Logger))
         
-    if canSkip:
+    if canSkipOrFail:
         @unittest.expectedFailure
         def test_logger_set(self):
             # We shouldn't be able to replace the logger
             l = logger.K2Logger('Karl')
             l.logger = logging.getLogger('Hello!')
     
-    if canSkip:
+    if canSkipOrFail:
         @unittest.expectedFailure
         def test_logger_delete(self):
             # We shouldn't be able to delete the logger
@@ -85,7 +78,7 @@ tests = ('test_create',
 skippedTests = ('test_create_badName',
                 'test_namePrefix_set', 'test_namePrefix_delete',
                 'test_logger_set', 'test_logger_delete')
-if canSkip:
+if canSkipOrFail:
     K2LoggerTestSuite = unittest.TestSuite(map(K2LoggerTests, (tests + skippedTests)))
 else:
     K2LoggerTestSuite = unittest.TestSuite(map(K2LoggerTests, tests))
