@@ -491,10 +491,11 @@ class K2SettingsModule(object):
     @ivar settings: If L{K2SettingsModule} is being allowed to store the
     settings, then is where settings are stored.
     @type settings: Hash
+    
+    @undocumented: __metaclass__
     '''
     
     # We're an abstract base class
-    # @undocumented: __metaclass__
     __metaclass__ = ABCMeta
     
     
