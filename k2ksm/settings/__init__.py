@@ -42,6 +42,14 @@ class K2Settings(object):
     Only server-wide settings can be placed here.
     '''
 
+    __moduleClasses = {}
+    '''
+    @ivar: A hash of K2SettingsModule classes.  The key is the name of the
+    module; the value is a class.  This is where we go if we need to make
+    more instances of K2SettingsModule objects.  This normally happens when
+    we need to store session-specific settings.
+    '''
+    
     __moduleSettings = {}
     '''
     @ivar: A hash of a hash of K2SettingsModule objects.  The first key is
@@ -188,6 +196,101 @@ class K2Settings(object):
         x.loadConfig(config)
         
         return x
+    
+    
+    def processUnused(self, moduleID=None):
+        '''
+        Look through L{__unusedSettings}, and see if we can find any settings
+        that have not yet been given to a registered module.
+        
+        @param moduleID: The unique, human-readable ID of a module.  If given,
+        we will only look for settings related to this module.  Used when a
+        module has just been registered.
+        @type moduleID: String
+        
+        @raise KeyError: Thrown if we find a setting for a registered module,
+        but the module does not recognize the setting.
+        
+        @raise ValueError: Thrown if we find a setting for a registered module,
+        but the setting's value is invalid.
+        '''
+        
+        # Do we search through all of the modules with unused settings, or just
+        # one?
+        if (moduleID == None):
+            searchList = self.__unusedSettings.keys()
+        else:
+            if (moduleID in self.__unusedSettings):
+                searchList = (moduleID,)
+            else:
+                self.logger.debug('Processing unused settings for %s, but' \
+                                  "it doesn't have any unused settings" % \
+                                  moduleID)
+                searchList = ()
+        self.logger.debug('Processing unused settings in: ' + str(searchList))
+        
+        # Check each module in the searchList to see if it's been registered
+        for module in searchList:
+            if (module not in self.__moduleSettings):
+                self.logger.debug('Module %s not registered' % module)
+                continue
+            
+            # We have a registered module!  Load the settings
+            for setting in self.__unusedSettings[module]:
+                self.logger.debug('Loading setting %s.%s' % (module, setting))
+                self.__moduleSettings[0][setting] = \
+                    self.__unusedSettings[module][setting]
+                
+            # At this point, the unused settings have been loaded, so clean up
+            del self.__unusedSettings[module]
+            
+        
+    def register(self, moduleID, settingsClass, settings=None):
+        '''
+        Register a new module's L{K2SettingsModule}.  This gets called by each
+        program module when it registers, during server setup.
+        
+        @param moduleID: The unique, human-readable ID of the module,
+        like "AES" or "K2KSM".
+        @type moduleID: String
+        
+        @param settingsClass: The class used to store settings for the module.
+        This is used to make new instances as needed.
+        @type settingsClass: Subclass of L{K2SettingsModule}
+        
+        @param settings: If provided, this will be used to store server-wide
+        settings for the module.  Useful if some settings can already be set.
+        @type settings: settingsClass
+        
+        @raise KeyError: Thrown if the C{moduleID} has already been registered.
+        
+        @raise TypeError: Thrown if C{settingsClass} is not a subclass of
+        L{K2SettingsModule}, or if C{settings} is not an instance of
+        C{settingsClass} (that is, assuming C{settings} is not C{None}).
+        '''
+        self.logger.debug('Module %s is registering settings' % moduleID)
+        
+        # Validation
+        if (moduleID in self.__moduleSettings):
+            raise KeyError("moduleID %s already registered" % moduleID)
+        if (not issubclass(settingsClass, K2SettingsModule)):
+            raise TypeError('settingsModule must inherit from '
+                            + 'K2SettingsModule')
+        if (settings != None):
+            if (not isinstance(settings, settingsClass)):
+                raise TypeError('settings must be instance of settingsClass')
+        
+        # Record the settings class, and create an instance for server-side
+        self.__moduleClasses[moduleID] = settingsClass
+        if (settings == None):
+            self.logger.debug('Creating fresh settings for %s' % moduleID)
+            self.__moduleClasses[moduleID][0] = settingsClass()
+        else:
+            self.logger.debug('Using provided settings for %s' % moduleID)
+            self.__moduleClasses[moduleID][0] = settings
+            
+        # Check to see if we can now use some loaded, but unused, settings
+        self.processUnused(moduleID)
         
     
     def finalize(self):
@@ -199,6 +302,7 @@ class K2Settings(object):
         
         self.logger.debug(  'K2Settings setup complete.  '
                           + 'Deleting unused settings.')
+        self.processUnused()
         for moduleName in self.__unusedSettings:
             self.logger.warning('Module ' + moduleName
                                 + ' had settings defined, but ' + moduleName
