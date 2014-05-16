@@ -17,6 +17,8 @@ if (options.verbose == True):
 # Assemble all of the test suites
 tests = unittest.TestSuite()
 tests.addTest(logger.K2LoggerTestSuite)
+tests.addTest(settings.K2SettingsTestSuite)
+tests.addTest(settings.K2SettingsModuleTestSuite)
 
 # Configure the runner, and run the tests
 runner = unittest.TextTestRunner(verbosity=verbosity)
