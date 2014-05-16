@@ -113,6 +113,7 @@ class K2Logger(object):
             self.__logToStderr = True
         elif (value == False):
             if (self.__logToStderr == True):
+                self.__logStderrHandler.flush()
                 self.__logger.removeHandler(self.__logStderrHandler)
             self.__logToStderr = False
         else:
@@ -149,6 +150,7 @@ class K2Logger(object):
             self.__logToSyslog = True
         elif (value == False):
             if (self.__logToSyslog == True):
+                self.__logSyslogHandler.flush()
                 self.__logger.removeHandler(self.__logSyslogHandler)
             self.__logToSyslog = False
         else:
