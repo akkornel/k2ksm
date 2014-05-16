@@ -199,9 +199,13 @@ class K2Settings(object):
         
         self.logger.debug(  'K2Settings setup complete.  '
                           + 'Deleting unused settings.')
+        for moduleName in self.__unusedSettings:
+            self.logger.warning('Module ' + moduleName
+                                + ' had settings defined, but ' + moduleName
+                                + 'was not loaded.')
         del self.__unusedSettings
         self.finalized = True
-        # TODO: Generate a warning for each module that has unused settings.
+        
 
 
 class K2SettingsModule(object):
