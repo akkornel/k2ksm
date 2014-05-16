@@ -182,7 +182,13 @@ class K2Logger(object):
             newName = str(module)
         except:
             raise TypeError('module must support str()')
-        return self.__logger.getChild(newName)
+        
+        # Python 2.6 doesn't have getChild
+        try:
+            return self.__logger.getChild(newName)
+        except AttributeError:
+            newName = self.__namePrefix + '.' + newName
+            return logging.getLogger(newName)
 
 
 if (__name__ == "__main__"):
