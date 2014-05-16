@@ -337,7 +337,7 @@ class K2Settings(object):
         for moduleName in self.__unusedSettings:
             self.logger.warning('Module ' + moduleName
                                 + ' had settings defined, but ' + moduleName
-                                + 'was not loaded.')
+                                + ' was not loaded.')
         del self.__unusedSettings
         self.finalized = True
         
