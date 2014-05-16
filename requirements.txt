@@ -1,6 +1,9 @@
 # This file contains the list of stuff that k2ksm requires from the PyPI.
 # The easiest way to install everything is to just run `pip -r requirements.txt`.
 
+# python-dateutil is used to parse datetime strings
+python-dateutil
+
 # PyCrypto does the heavy lifting for AES
 #PyCrypto>=2.6.1
 
