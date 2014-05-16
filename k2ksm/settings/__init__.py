@@ -1,6 +1,7 @@
 
 from abc import ABCMeta, abstractmethod
 from sys import argv
+from ..exceptions import K2FinalizeError
 from ..logger import K2Logger
 
 
@@ -126,9 +127,16 @@ class K2Settings(object):
         @param args: An even-numbered list of arguments.
         @type args: List
         
+        @raise K2FinalizeError: Thrown if the L{K2Settings} instance has
+        already been finalized.
+        
         @raise IndexError: Thrown if an odd-numbered list of arguments
         is provided.
         '''
+        if (self.finalized):
+            raise K2FinalizeError('Can not load new arguments, ' \
+                                  + 'settings finalized')
+        
         self.logger.info('Parsing command-line arguments')
         self.configArgs = args
         if (len(self.configArgs) % 2 != 0):
@@ -159,7 +167,14 @@ class K2Settings(object):
         
         @param config: The path to an .ini-style configuration file.
         @type config: String
+        
+        @raise K2FinalizeError: Thrown if the L{K2Settings} instance has
+        already been finalized.
         '''
+        if (self.finalized):
+            raise K2FinalizeError('Can not load new configuration, ' \
+                                  + 'settings finalized')
+        
         self.logger.info('Loading configuration from path ' + config)
         self.configPath = config
         # TODO
@@ -202,12 +217,17 @@ class K2Settings(object):
     def processUnused(self, moduleID=None):
         '''
         Look through L{__unusedSettings}, and see if we can find any settings
-        that have not yet been given to a registered module.
+        that have not yet been given to a registered module.  Although public,
+        this method will not normally need to be called by anything outside
+        of the class.
         
         @param moduleID: The unique, human-readable ID of a module.  If given,
         we will only look for settings related to this module.  Used when a
         module has just been registered.
         @type moduleID: String
+        
+        @raise K2FinalizeError: Thrown if this method is called after
+        L{finalize} has been called.  If this is raised, something is wrong.
         
         @raise KeyError: Thrown if we find a setting for a registered module,
         but the module does not recognize the setting.
@@ -215,6 +235,10 @@ class K2Settings(object):
         @raise ValueError: Thrown if we find a setting for a registered module,
         but the setting's value is invalid.
         '''
+        
+        if (self.finalized):
+            raise K2FinalizeError('Can not load process unused ' \
+                                  + 'configuration, settings finalized')
         
         # Do we search through all of the modules with unused settings, or just
         # one?
@@ -263,6 +287,9 @@ class K2Settings(object):
         settings for the module.  Useful if some settings can already be set.
         @type settings: settingsClass
         
+        @raise K2FinalizeError: Thrown if the L{K2Settings} instance has
+        already been finalized.
+        
         @raise KeyError: Thrown if the C{moduleID} has already been registered.
         
         @raise TypeError: Thrown if C{settingsClass} is not a subclass of
@@ -272,6 +299,8 @@ class K2Settings(object):
         self.logger.debug('Module %s is registering settings' % moduleID)
         
         # Validation
+        if (self.finalized):
+            raise K2FinalizeError('Can not register %s, settings finalized' % moduleID)
         if (moduleID in self.__moduleSettings[0]):
             raise KeyError("moduleID %s already registered" % moduleID)
         if (not issubclass(settingsClass, K2SettingsModule)):
