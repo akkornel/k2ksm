@@ -323,7 +323,25 @@ class K2Settings(object):
         # Check to see if we can now use some loaded, but unused, settings
         self.processUnused(moduleID)
         
-    
+        
+    def finalize(self):
+        '''
+        This is called by the server after everything has been initially
+        registered.  Right now, we only use this to get rid of the hash of
+        unused settings, since we don't need them anymore.
+        '''
+        
+        self.logger.debug(  'K2Settings setup complete.  '
+                          + 'Deleting unused settings.')
+        self.processUnused()
+        for moduleName in self.__unusedSettings:
+            self.logger.warning('Module ' + moduleName
+                                + ' had settings defined, but ' + moduleName
+                                + 'was not loaded.')
+        del self.__unusedSettings
+        self.finalized = True
+        
+        
     def newSession(self, sessionID):
         '''
         Prepare to store settings for a new session.
@@ -364,25 +382,6 @@ class K2Settings(object):
             raise ValueError('Session ID 0 may not be deleted')
         
         del self.__moduleSettings[sessionID]
-        
-        
-    
-    def finalize(self):
-        '''
-        This is called by the server after everything has been initially
-        registered.  Right now, we only use this to get rid of the hash of
-        unused settings, since we don't need them anymore.
-        '''
-        
-        self.logger.debug(  'K2Settings setup complete.  '
-                          + 'Deleting unused settings.')
-        self.processUnused()
-        for moduleName in self.__unusedSettings:
-            self.logger.warning('Module ' + moduleName
-                                + ' had settings defined, but ' + moduleName
-                                + 'was not loaded.')
-        del self.__unusedSettings
-        self.finalized = True
         
 
 
