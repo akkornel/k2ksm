@@ -24,11 +24,7 @@ def _boolean_validator(value):
         return False
 
 
-def _counter_validator(value, context):
-    # Fail immediately if we're not in test mode
-    if (context['K2KSM'][0]['TestMode'] == False):
-        return False
-    
+def _counter_validator(value):
     # It's OK if the value is None (to un-set the setting)
     if (value == None):
         return True
@@ -44,11 +40,7 @@ def _counter_validator(value, context):
         return True
 
 
-def _datetime_validator(value, context):
-    # Fail immediately if we're not in test mode
-    if (context['K2KSM'][0]['TestMode'] == False):
-        return False
-    
+def _datetime_validator(value):
     # If the parser can parse it, then we'll accept it
     try:
         value = dateutil.parser.parse(value)
@@ -84,7 +76,7 @@ settings['ServerPrivate']['description'] = \
 settings['OverrideCounter'] = {'perSession': False,
                                'mutable': True,
                                'default': None,
-                               'contextValidator': _counter_validator
+                               'validator': _counter_validator
                                }
 settings['OverrideCounter']['description'] = \
     "Used by authentication modules that require a counter.  If set, the " \
@@ -95,7 +87,7 @@ settings['OverrideCounter']['description'] = \
 settings['OverrideTimer'] = {'perSession': False,
                                'mutable': True,
                                'default': None,
-                               'contextValidator': _datetime_validator
+                               'validator': _datetime_validator
                                }
 settings['OverrideTimer']['description'] = \
     "Used by authentication modules that require a time.  If set, the " \
@@ -230,7 +222,7 @@ class K2KSMSettings(K2SettingsModule):
             return None
     
     @staticmethod
-    def settingValid(name, value, context):
+    def settingValid(name, value):
         '''
         Returns true if the value provided for the named setting is valid.
         
@@ -239,18 +231,10 @@ class K2KSMSettings(K2SettingsModule):
         
         @param value: The proposed value for the setting.
         
-        @param context: For settings which are context-sensitive (that is,
-        their value depends on other settings), this provides access to all of
-        the settings that are currently in effect.
-        @type context: A hash of a hash of L{K2SettingsModule} objects.
-        
         @rtype: Boolean
         @return: True if the value provided is valid for the
         setting; false otherwise.
         
         @raise KeyError: Thrown if the setting name is not recognized.
         '''
-        if ('contextValidator' in settings[name]):
-            return settings[name]['cointextValidator'](value, context)
-        else:
-            return settings[name]['validator'](value)
+        return settings[name]['validator'](value)
