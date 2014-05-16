@@ -383,7 +383,98 @@ class K2Settings(object):
         
         del self.__moduleSettings[sessionID]
         
-
+        
+    def settingGet(self, name, sessionID=None):
+        '''
+        Get a setting's value.
+        
+        @param name: The fully-qualified name of the setting, in the form
+        "moduleID.settingName".
+        
+        @param sessionID: If we are in a session, this is the session's
+        unique ID.  If a session-specific setting is requested, but a
+        C{sessionID} is not provided, then the default value is returned.
+        
+        @return: The current value of the setting, which may be C{None}.
+        
+        @raise KeyError: Thrown if the moduleID referenced is not registered,
+        or the sessionID does not exist.
+        
+        @raise AttributeError: Thrown if the setting name is invalid.
+        '''
+        
+        # Split out the moduleID and settingName, and validate
+        moduleID, settingName = name.split('.', 1)
+        if (moduleID not in self.__moduleSettings):
+            raise KeyError('Module %s is not registered' % moduleID)
+        if (not self.__moduleSettings[0][moduleID].nameValid(settingName)):
+            raise AttributeError('Module %s does not have a setting %s' \
+                                 % (moduleID, settingName))
+        
+        # If the setting is server-wide, get it now
+        if (self.__moduleSettings[0][moduleID].perSession(settingName)):
+            return self.__moduleSettings[0][moduleID][settingName]
+            
+        # If the setting is session-specific, but we don't have a sessionID,
+        # return the default value.  We'll also do this if we don't have a
+        # session-specific instance of the module's K2SettingsModule yet.
+        # (Remember, we are creating session-specific K2SettingsModule
+        # instances lazily.)
+        if (   (sessionID == None)
+            or (moduleID not in self.__moduleSettings[sessionID])
+            ):
+            return self.__moduleSettings[0][moduleID].default(settingName)
+        
+        # If we've gotten this far, then that means our sessionID actually has
+        # had settings stored for it.
+        return self.__moduleSettings[sessionID][moduleID][settingName]
+        
+        
+    def settingSet(self, name, value, sessionID=None):
+        '''
+        Set a setting.
+        
+        @param name: The fully-qualified name of the setting, in the form
+        "moduleID.settingName".
+        
+        @param sessionID: The unique ID of the session.  This is required
+        if we are setting a session-specific setting.
+        
+        @param value: The new value of the setting.  B{NOTE:} Changing a
+        setting to C{None} is not the same as un-setting it, or returning it to
+        its default value.
+        
+        @raise KeyError: Thrown if the moduleID referenced is not registered,
+        or the sessionID does not exist.
+        
+        @raise AttributeError: Thrown if the setting name is invalid.
+        
+        @raise ValueError: Thrown is the setting's value is invalid.
+        '''
+        
+        # Split out the moduleID and settingName, and validate
+        moduleID, settingName = name.split('.', 1)
+        if (moduleID not in self.__moduleSettings):
+            raise KeyError('Module %s is not registered' % moduleID)
+        if (not self.__moduleSettings[0][moduleID].nameValid(settingName)):
+            raise AttributeError('Module %s does not have a setting %s' \
+                                 % (moduleID, settingName))
+        
+        # Is the setting server-wide, or session-specific ?
+        if (not self.__moduleSettings[0][moduleID].perSession(settingName)):
+            # Server-wide.  This is easier.
+            self.__moduleSettings[0][moduleID][settingName] = value
+        else:
+            # Session-specific.  We create instances lazily, so we might need
+            # to do so now.
+            if (not moduleID in self.__moduleSettings[sessionID]):
+                # Instantiate an appropriate K2SettingsModule object to hold
+                # session-specific settings.
+                self.__moduleSettings[sessionID][moduleID] = \
+                    self.__moduleClasses[moduleID]()
+            self.__moduleSettings[sessionID][moduleID][settingName] = value
+        
+        
 
 class K2SettingsModule(object):
     '''
