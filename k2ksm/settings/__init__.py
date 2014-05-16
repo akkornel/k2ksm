@@ -1,14 +1,17 @@
 
 from abc import ABCMeta, abstractmethod
 from sys import argv
+from ..logger import K2Logger
 
 
+
+K2_DEFAULT_CONFIG = '/dev/null'
 '''
-@var K2_DEFAULT_CONFIG: This is the default configuration file location.
+This is the default configuration file location.
 Individual distributions should replace the /dev/null source distribution
 default with something disto-appropriate.
 '''
-K2_DEFAULT_CONFIG = '/dev/null'
+
 
 
 class K2Settings(object):
@@ -21,90 +24,163 @@ class K2Settings(object):
     The typically life-cycle for this module is:
     
     1) Server instantiates the module and loads initial settings
+    
     2) Server loads individual modules and passes the instance to the module's
     register() method.
+    
     3) Module treats the settings instance as a hash, adding a new key (its
     module ID), with the value being a K2SettingsModule object.
+    
     4) Settings are checked & changed as needed.
     '''
 
-    '''
-    @ivar __unusedSettings: A 2-dimensional array of settings that have been
-    pulled in somehow, but which have not already been claimed by a module.
-    '''
     __unusedSettings = {}
+    '''
+    @ivar: A 2-dimensional array of settings that have been
+    pulled in by L{loadArgs} or L{loadConfig}, but which haven't
+    yet been given to a module (because the module hasn't registered yet).
+    Only server-wide settings can be placed here.
+    '''
 
-    '''
-    @ivar __moduleSettings: An array of K2SettingsModule objects.  The key is
-    the name of the module.
-    '''
     __moduleSettings = {}
+    '''
+    @ivar: A hash of a hash of K2SettingsModule objects.  The first key is
+    the name of the module; the second key is the session ID (to store session-
+    specific settings), or zero (to store server-wide settings).
+    '''
     
-    '''
-    @ivar finalized: Set to true once all modules have been registered.
-    '''
     finalized = False
+    '''
+    @ivar: Set to true once all modules have been registered.
+    @type: Boolean
+    '''
     
-    '''
-    @ivar logger: A K2Logger object that we can use.
-    '''
     logger = None
+    '''
+    @ivar: A K2Logger object that we can use.
+    @type: K2Logger
+    '''
+    
+    configArgs = None
+    '''
+    @ivar: The source of command-line arguments.
+    This is set when loadArgs() is called.  If set to None, then loadArgs()
+    was never called.
+    @type: String
+    '''
+    
+    configPath = None
+    '''
+    @ivar: The path to the configuration file.
+    This is set when loadConfig is called.  If set to None, then loadConfig()
+    was never called.
+    @type: String
+    '''
 
     
     def __init__(self, logger):
         '''
-        Right now, we just create a logger for ourselves.
+        Create a new K2Settings object for settings storage.
         
         @param logger: A K2Logger object, which we can use to create a
         logging.logger object for ourselves.
         @type logger: K2Logger
+        
+        @rtype: K2Logger
+        @return: A new empty K2Logger object.
+        
+        @raise TypeError: Thrown if logger is not a K2Logger object.
         '''
         
-        self.logger = logger.loggerForModule('DB')
+        # Just set up the logger
+        if (not isinstance(logger, K2Logger)):
+            raise TypeError('logger must be a K2Logger object')
+        self.logger = logger.loggerForModule('Settings')
         self.logger.debug('K2Settings instantiated')
     
     
     def loadArgs(self, args=argv):
         '''
-        Load settings from command-line arguments.
+        Load settings from a list of arguments.
         A list of arguments can be provided for parsing, otherwise sys.argv
         is used.
         
-        @param args: A list of command-line arguments.
+        Arguments must appear in the following form::
+        
+            moduleName.settingName settingValue
+            
+        That means the total number of arguments will be 2 times the number of
+        settings.
+        
+        If called without args being specified, C{sys.argv} will be used.
+        
+        @param args: An even-numbered list of arguments.
         @type args: List
+        
+        @raise IndexError: Thrown if an odd-numbered list of arguments
+        is provided.
         '''
         self.logger.info('Parsing command-line arguments')
-        # TODO
+        self.configArgs = args
+        if (len(self.configArgs) % 2 != 0):
+            raise IndexError('args must have an even number of items')
+        
+        i = 0
+        while (i < len(self.configArgs)):
+            lvalue = self.configArgs[i]
+            settingValue = self.configArgs[i + 1]
+            moduleName, settingName = lvalue.split('.', 1)
+            
+            if (moduleName not in self.__unusedSettings):
+                self.__unusedSettings[moduleName] = {}
+                
+            self.__unusedSettings[moduleName][settingName] = settingValue
+            self.logger.debug('Added setting %s.%s=%s' % (
+                             moduleName, settingName, settingValue
+                             ))
+            
+            i += 2
     
     
     def loadConfig(self, config=K2_DEFAULT_CONFIG):
         '''
         Load settings from a .ini-style configuration file.
         If the configuration file to use is not provided, then the default
-        K2_DEFAULT_CONFIG will be used instead.
+        L{K2_DEFAULT_CONFIG} will be used instead.
         
         @param config: The path to an .ini-style configuration file.
-        @type config: A string
+        @type config: String
         '''
-        self.logger.info('Loading configuration from path' + config)
+        self.logger.info('Loading configuration from path ' + config)
+        self.configPath = config
         # TODO
     
     
     @classmethod
-    def load(cls, logger, args=argv, config=K2_DEFAULT_CONFIG):
+    def load(cls, logger, args=None, config=None):
         '''
-        A convenience method.  Creates a new K2Settings object, calls loadArgs
-        and loadConfig, and then returns the newly-made class.
+        A convenience method to create & configure a L{K2Settings} object.
+        Creates a new L{K2Settings} object, calls L{loadArgs}
+        and L{loadConfig}, and then returns the newly-made class.  This method
+        will use the defaults for C{args} and C{config}; if you want an empty
+        L{K2Settings} object, you should just create a new one of your own.
         
-        @param logger: A K2Logger object, which we can use to create a
+        @param logger: A L{K2Logger} object, which we can use to create a
         logging.logger object for ourselves.
-        @type logger: K2Logger
+        @type logger: L{K2Logger}
         
-        @param args: A list of command-line arguments.
+        @param args: A list of command-line arguments.  If not specified,
+        sys.argv will be used.
         @type args: List
         
-        @param config: The path to an .ini-style configuration file.
+        @param config: The path to an .ini-style configuration file.  If not
+        specified, L{K2_DEFAULT_CONFIG} will be used.
         @type config: A string
+        
+        @rtype: K2Settings
+        @return: A new L{K2Settings} object loaded with settings.
+        
+        @raise TypeError: Thrown if logger is not a L{K2Logger} object.
         '''
         
         x = cls(logger)
@@ -145,25 +221,24 @@ class K2SettingsModule(object):
     settings.  To that end, this class implements the behavior of a hash.  The
     module developer only needs to implement the abstract methods.
     
-    For each module, the server process will generally create 2+ instances of
-    this class.  One instance will hold all of the server-wide settings; the
+    When implementing a subclass of this class, do not assume that your
+    subclass will hold all of the settings for your module in a single
+    instance!  The server process will likely create 2+ instances of this
+    class:  One instance will hold all of the server-wide settings; the
     other instances will hold session-specific settings.
     '''
     
-    # We're an abstract base class.
+    # We're an abstract base class
+    # @undocumented: __metaclass__
     __metaclass__ = ABCMeta
-    
-    '''
-    @ivar settings: This is where settings are stored.
-    @type settings: A hash.
-    '''
-    settings = {}
 
+    
+    settings = {}
     '''
-    @ivar sessionID: If this instance is holding session-specific settings,
-    then a session ID will be set.
+    @ivar: If L{K2SettingsModule} is being allowed to store the settings, then
+    is where settings are stored.
+    @type: Hash
     '''
-    sessionID = None
     
     
     @abstractmethod
@@ -171,7 +246,8 @@ class K2SettingsModule(object):
         '''
         Returns a list of all of the setting names that this module recognizes.
         
-        @return: A tuple of strings.
+        @rtype: List
+        @return: A sequence of strings.
         '''
         pass
     
@@ -184,9 +260,8 @@ class K2SettingsModule(object):
         @param name: The name of the setting.
         @type name: A string.
         
-        @return: A Boolean: True if the setting is recognized, false otherwise.
-        
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @rtype: Boolean
+        @return: True if the setting is recognized, false otherwise.
         '''
         pass
     
@@ -199,9 +274,10 @@ class K2SettingsModule(object):
         @param name: The name of the setting.
         @type name: A string.
         
-        @return: A string containing a human-readable description.
+        @rtype: String
+        @return: A human-readable description of the named setting.
         
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @raise KeyError: Thrown if the setting name is not recognized.
         '''
         pass
     
@@ -214,10 +290,10 @@ class K2SettingsModule(object):
         @param name: The name of the setting.
         @type name: A string.
         
-        @return: A Boolean: True if the setting is session-specific, false
-        otherwise.
+        @rtype: Boolean
+        @return: True if the setting is session-specific, false otherwise.
         
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @raise KeyError: Thrown if the setting name is not recognized.
         '''
         pass
     
@@ -228,12 +304,13 @@ class K2SettingsModule(object):
         Returns true of the setting can be changed after server start.
         
         @param name: The name of the setting.
-        @type name: A string.
+        @type name: String
         
-        @return: A Boolean: True if the setting can be changed after server
+        @rtype: Boolean
+        @return: True if the setting can be changed after server
         start; false otherwise.
         
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @raise KeyError: Thrown if the setting name is not recognized.
         '''
         pass
     
@@ -248,10 +325,11 @@ class K2SettingsModule(object):
         @param name: The name of the setting.
         @type name: A string.
         
-        @return: A Boolean: True if the setting can be changed after server
+        @rtype: Boolean
+        @return: True if the setting can be changed after server
         start; false otherwise.
         
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @raise KeyError: Thrown if the setting name is not recognized.
         '''
         pass
     
@@ -267,13 +345,13 @@ class K2SettingsModule(object):
         
         @return: The default value for the setting (which might be None).
         
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @raise KeyError: Thrown if the setting name is not recognized.
         '''
         pass
     
     
     @abstractmethod
-    def valid(self, name, value):
+    def settingValid(self, name, value):
         '''
         Returns true if the value provided for the named setting is valid.
         
@@ -282,10 +360,11 @@ class K2SettingsModule(object):
         
         @param value: The proposed value for the setting.
         
-        @return: A Boolean: True if the value provided is valid for the
+        @rtype: Boolean
+        @return: True if the value provided is valid for the
         setting; false otherwise.
         
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @raise KeyError: Thrown if the setting name is not recognized.
         '''
     pass
 
@@ -294,7 +373,7 @@ class K2SettingsModule(object):
         '''
         Returns the number of settings that are set to non-default values.
         
-        @return: An Integer.
+        @rtype: Integer.
         '''
         return len(self.settings)
 
@@ -310,7 +389,7 @@ class K2SettingsModule(object):
         @return: The value of the setting, or the default value, which might be
         None.
         
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @raise KeyError: Thrown if the setting name is not recognized.
         '''
         if (key in self.settings):
             return self.settings[key]
@@ -327,21 +406,20 @@ class K2SettingsModule(object):
         
         @param value: The new value for the setting.
         
-        @raise K2SettingUnknown: Thrown if the setting name is not recognized.
+        @raise KeyError: Thrown if the setting name is not recognized.
         @raise K2SettingImmutable: Thrown if the setting can not be changed.
-        @raise ???: Thrown if the setting's value is invalid.
+        @raise ValueError: Thrown if the setting's value is invalid.
         '''
         if (not self.mutable(key)):
             # raise ?????
             # TODO
             pass
+        # Checking for validity is what raises the KeyError
         if (self.valid(key, value)):
             if (value != self.default(key)):
                 self.settings[key] = value
         else:
-            # raise ?????
-            # TODO
-            pass
+            raise ValueError("Value %s is invalid for key %s" % (value, key))
 
     def __delitem__(self, key):
         '''
@@ -356,9 +434,10 @@ class K2SettingsModule(object):
         '''
         if (not self.mutable(key)):
             # raise ?????
-            # TODO
+            # TODO:
             pass
         if (not self.required(key)):
             # raise ?????
             # TODO
+            pass
         del self.settings[key]
