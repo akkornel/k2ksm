@@ -16,4 +16,11 @@ if (   (_majorVer >= 3)
     canSkipOrFail = True
 
 
-__all__ = (canSkipOrFail,)
+#: This class exists just so we'll have something that can't properly support
+# str()
+class nonStr(object):
+    def __str__(self):
+        return 1
+
+
+__all__ = (canSkipOrFail, nonStr)
