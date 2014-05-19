@@ -25,6 +25,43 @@ except:
 class K2SettingsTests(unittest.TestCase):
     # All of the tests of the K2Settings are in this class.
     
+    MAX_ARGS = 10
+    MAX_MODULES = 3
+    MAX_SETTINGS = 5
+    MAX_VALUE = 120
+    
+    @classmethod
+    def makeArguments(cls):
+        '''
+        Generates up to MAX_ARGS pairs of arguments.  Agruments are placed into
+        one of MAX_MODULES different modules, named
+        "module0", "module1", ..., "moduleX".  Each setting name is "settingX",
+        where X is a number from 0 to MAX_SETTINGS.  The value of the setting
+        is a number from 0 to MAX_VALUE.
+        '''
+        
+        #: A 2-dimensional hash.  The outer key is the module name, the inner
+        # key is the setting name.
+        modules = {}
+        
+        for i in xrange(1, random.randint(1, cls.MAX_ARGS)):
+            moduleString = 'module' + str(random.randint(0, cls.MAX_MODULES))
+            settingString = 'setting' + str(random.randint(0, cls.MAX_SETTINGS))
+            if (    (moduleString in modules)
+                and (settingString in modules[moduleString])
+               ):
+                # Don't duplicate entries.  We've lost this chance; try again!
+                continue
+
+            # (If needed) make the 2nd-level hash, then assign the value
+            if (moduleString not in modules):
+                modules[moduleString] = {}
+            modules[moduleString][settingString] = random.randint(0, \
+                                                    cls.MAX_VALUE)
+            
+        return modules
+    
+    
     def setUp(self):
         random.seed()
         emptyLog = logger.K2Logger('')
@@ -46,27 +83,20 @@ class K2SettingsTests(unittest.TestCase):
     
     
     def test_loadArgs(self):
-        # We should be able to load some number of arguments
+        # Generate some sample module/setting data
+        samples = self.__class__.makeArguments()
         args = []
-        modules = {}
         
-        # Generate up to 10 pairs of arguments to load
-        for i in xrange(1, random.randint(1, 10)):
-            moduleNumber = random.randint(0, 3)
-            settingNumber = random.randint(0, 5)
-            # modules keeps track of the # of modules we've created, and
-            # also makes sure that we don't use the same
-            # moduleNumber/settingNumber combo multiple times.
-            if (moduleNumber not in modules):
-                modules[moduleNumber] = []
-            if (settingNumber not in modules[moduleNumber]):
-                modules[moduleNumber].append(settingNumber)
-                args.append('module' + str(moduleNumber) \
-                            + '.setting' + str(settingNumber))
-                args.append(str(random.randint(0, 120)))
+        # Convert into argument strings
+        for module in samples:
+            for setting in samples[module]:
+                args.extend([module + '.' + setting,
+                             samples[module][setting]
+                            ])
+        
         self.s.loadArgs(args)
         self.assertEquals(len(self.s._K2Settings__unusedSettings), \
-                          len(modules))
+                          len(samples))
         
     def test_loadArgs_emptyList(self):
         # We should be able to loadArgs with an empty list
