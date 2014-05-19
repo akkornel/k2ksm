@@ -5,15 +5,16 @@ Created on May 9, 2014
 '''
 import unittest
 import logging
-from ._util import canSkipOrFail, nonStr
 
 # If we're being run directly, then we need to add the parent dir to path
 try:
     from k2ksm import logger
+    from ._util import canSkipOrFail, nonStr
 except:
     from sys import path
     path.append('..')
     from k2ksm import logger
+    from t._util import canSkipOrFail, nonStr
     
 
 
