@@ -116,13 +116,11 @@ class K2Logger(object):
     @logToStderr.setter
     def logToStderr(self, value):
         if (value == True):
-            if (self.__logToStderr == False):
-                self.__logger.addHandler(self.__logStderrHandler)
+            self.__logger.addHandler(self.__logStderrHandler)
             self.__logToStderr = True
         elif (value == False):
-            if (self.__logToStderr == True):
-                self.__logStderrHandler.flush()
-                self.__logger.removeHandler(self.__logStderrHandler)
+            self.__logStderrHandler.flush()
+            self.__logger.removeHandler(self.__logStderrHandler)
             self.__logToStderr = False
         else:
             raise TypeError('logToStderr must be a Boolean')
@@ -151,15 +149,13 @@ class K2Logger(object):
     @logToSyslog.setter
     def logToSyslog(self, value):
         if (value == True):
-            if (self.__logToSyslog == False):
-                if (self.__logSyslogHandler == None):
-                    raise NotImplementedError('Could not log to the event log, Win32 extensions needed.')
-                self.__logger.addHandler(self.__logSyslogHandler)
+            if (self.__logSyslogHandler == None):
+                raise NotImplementedError('Could not log to the event log, Win32 extensions needed.')
+            self.__logger.addHandler(self.__logSyslogHandler)
             self.__logToSyslog = True
         elif (value == False):
-            if (self.__logToSyslog == True):
-                self.__logSyslogHandler.flush()
-                self.__logger.removeHandler(self.__logSyslogHandler)
+            self.__logSyslogHandler.flush()
+            self.__logger.removeHandler(self.__logSyslogHandler)
             self.__logToSyslog = False
         else:
             raise TypeError('logToSyslog must be a Boolean')
