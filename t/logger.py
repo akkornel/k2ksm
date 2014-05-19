@@ -20,11 +20,17 @@ except:
 
 class K2LoggerTests(unittest.TestCase):
     # All of the tests of the K2Logger are in this class.
+    
+    def setUp(self):
+        self.l = logger.K2Logger('Karl')
+        
+    def testDown(self):
+        self.l = None
+        
 
     def test_create(self):
         # Creating a logger with a valid name should pass
-        l = logger.K2Logger('Karl')
-        self.assertTrue(isinstance(l, logger.K2Logger))
+        self.assertTrue(isinstance(self.l, logger.K2Logger))
         
     if canSkipOrFail:
         def test_create_badName(self):
@@ -34,66 +40,57 @@ class K2LoggerTests(unittest.TestCase):
 
     def test_namePrefix_get(self):
         # Make sure the namePrefix matches what is stored
-        l = logger.K2Logger('Karl')
-        prefix = l.namePrefix
-        self.assertEqual(prefix, l._K2Logger__namePrefix)
+        prefix = self.l.namePrefix
+        self.assertEqual(prefix, self.l._K2Logger__namePrefix)
 
     if canSkipOrFail:
         @unittest.expectedFailure
         def test_namePrefix_set(self):
             # Trying to set the namePrefix should fail
-            l = logger.K2Logger('Karl')
-            l.namePrefix = 'SomeoneElse'
+            self.l.namePrefix = 'SomeoneElse'
     
     if canSkipOrFail:
         @unittest.expectedFailure
         def test_namePrefix_delete(self):
             # Trying to delete the namePrefix should fail
-            l = logger.K2Logger('Karl')
-            del l.namePrefix
+            del self.l.namePrefix
     
     def test_logger(self):
         # The logger attribute should be a Logger object
-        l = logger.K2Logger('Karl')
-        self.assertTrue(isinstance(l.logger, logging.Logger))
+        self.assertTrue(isinstance(self.l.logger, logging.Logger))
         
     if canSkipOrFail:
         @unittest.expectedFailure
         def test_logger_set(self):
             # We shouldn't be able to replace the logger
-            l = logger.K2Logger('Karl')
-            l.logger = logging.getLogger('Hello!')
+            self.l.logger = logging.getLogger('Hello!')
     
     if canSkipOrFail:
         @unittest.expectedFailure
         def test_logger_delete(self):
             # We shouldn't be able to delete the logger
-            l = logger.K2Logger('Karl')
-            del l.logger
+            del self.l.logger
 
     def test_logStderr_false(self):
-        l = logger.K2Logger('Karl')
-        l.logToStderr = False
+        self.l.logToStderr = False
     
     if canSkipOrFail:
         def test_logStderr_nonBoolean(self):
             # Passing a non-boolean should fail
-            l = logger.K2Logger('Karl')
-            self.assertRaises(TypeError, l.__setattr__, 'logToStderr', 'Karl')
+            self.assertRaises(TypeError, self.l.__setattr__, 'logToStderr', \
+                              'Karl')
     
     def test_logSyslog_true(self):
-        l = logger.K2Logger('Karl')
-        l.logToSyslog = True
+        self.l.logToSyslog = True
     
     def test_logSyslog_tf(self):
-        l = logger.K2Logger('Karl')
-        l.logToSyslog = True
-        l.logToSyslog = False
+        self.l.logToSyslog = True
+        self.l.logToSyslog = False
     
     if canSkipOrFail:
         def test_logSyslog_nonBoolean(self):
-            l = logger.K2Logger('Karl')
-            self.assertRaises(TypeError, l.__setattr__, 'logToSyslog', 'Karl')
+            self.assertRaises(TypeError, self.l.__setattr__, 'logToSyslog', \
+                              'Karl')
     
     
     
