@@ -49,6 +49,23 @@ def _datetime_validator(value):
     return True
 
 
+def _modules_validator(value):
+    # First, split the string
+    modules = value.split(' ')
+    
+    # Check each module listed
+    for module in modules:
+        # We should be able to load the module and the module name should match
+        try:
+            loadedModule = __import__('k2ksm.' + module, fromlist=['k2ksm'])
+            if (loadedModule.__name__ != module):
+                return False
+        except:
+            return False
+            
+    return True
+
+
 #: settings is a hash that details what the K2KSM module's settings are.
 settings = {}
 
@@ -71,6 +88,19 @@ settings['ServerPrivate'] = {'perSession': False,
 settings['ServerPrivate']['description'] = \
     "If True, this is the private side of the server.  Otherwise, this is " \
     + "the public-facing server."
+
+
+settings['modules'] = {'perSession': False,
+                       'mutable': False,
+                       'required': True,
+                       'default': 'AES',
+                       'validator': _modules_validator,
+                       }
+settings['modules']['description'] = \
+    "The list of modules that will be loaded on server startup.  Modules " \
+    + "in the list should only be separated by spaces.  Supporting modules, " \
+    + "(including K2KSM, DB, LOGGER, and SETTINGS) " \
+    + "should not be listed here, because they are always loaded.  "
     
 
 settings['OverrideCounter'] = {'perSession': False,
