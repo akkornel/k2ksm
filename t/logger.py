@@ -5,7 +5,7 @@ Created on May 9, 2014
 '''
 import unittest
 import logging
-from ._util import canSkipOrFail
+from ._util import canSkipOrFail, nonStr
 
 # If we're being run directly, then we need to add the parent dir to path
 try:
@@ -24,13 +24,18 @@ class K2LoggerTests(unittest.TestCase):
         # Creating a logger with a valid name should pass
         l = logger.K2Logger('Karl')
         self.assertTrue(isinstance(l, logger.K2Logger))
-    
-    # Skipping is allowed in 3+ or 2.7+
+        
     if canSkipOrFail:
-        @unittest.skip("I don't know what object won't give me a str() output")
         def test_create_badName(self):
             # Creating a logger with something non-str()able should fail
-            pass
+            nonstr = nonStr()
+            self.assertRaises(TypeError, logger.K2Logger, nonstr)
+
+    def test_namePrefix_get(self):
+        # Make sure the namePrefix matches what is stored
+        l = logger.K2Logger('Karl')
+        prefix = l.namePrefix
+        self.assertEqual(prefix, l._K2Logger__namePrefix)
 
     if canSkipOrFail:
         @unittest.expectedFailure
@@ -65,7 +70,7 @@ class K2LoggerTests(unittest.TestCase):
             # We shouldn't be able to delete the logger
             l = logger.K2Logger('Karl')
             del l.logger
-        
+
     
     # TODO: Add test cases for logToStderr, logToSyslog, and loggerForModule
     # Also, try to actually log stuff, to see if it works!
@@ -74,6 +79,7 @@ class K2LoggerTests(unittest.TestCase):
         
 # List the tests and create a test suite, for use by the top-level test script.
 tests = ('test_create',
+         'test_namePrefix_get'
          'test_logger')
 skippedTests = ('test_create_badName',
                 'test_namePrefix_set', 'test_namePrefix_delete',
