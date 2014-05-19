@@ -92,10 +92,16 @@ class K2LoggerTests(unittest.TestCase):
             self.assertRaises(TypeError, self.l.__setattr__, 'logToSyslog', \
                               'Karl')
     
-    
-    
-    # TODO: Add test cases for loggerForModule
-    # Also, try to actually log stuff, to see if it works!
+    def test_loggerForModule(self):
+        lm = self.l.loggerForModule('module')
+        self.assertTrue(isinstance(lm, logging.Logger))
+        self.assertEqual(lm.name, 'Karl.module')
+        
+    if canSkipOrFail:
+        def test_loggerForModule_badName(self):
+            # Creating a logger with something non-str()able should fail
+            nonstr = nonStr()
+            self.assertRaises(TypeError, logger.K2Logger, nonstr)
         
         
 # List the tests and create a test suite, for use by the top-level test script.
@@ -104,12 +110,14 @@ tests = ('test_create',
          'test_logger',
          'test_logStderr_false',
          'test_logSyslog_true', 'test_logSyslog_tf',
+         'test_loggerForModule',
          )
 skippedTests = ('test_create_badName',
                 'test_namePrefix_set', 'test_namePrefix_delete',
                 'test_logger_set', 'test_logger_delete',
                 'test_logStderr_nonBoolean',
                 'test_logSyslog_nonBoolean',
+                'test_loggerForModule_badName',
                 )
 if canSkipOrFail:
     K2LoggerTestSuite = unittest.TestSuite(map(K2LoggerTests, (tests + skippedTests)))
