@@ -38,7 +38,12 @@ class K2SettingsTests(unittest.TestCase):
     def test_create(self):
         # Creating a basic settings object should pass
         self.assertTrue(isinstance(self.s, settings.K2Settings))
-        
+    
+    if canSkipOrFail:
+        def test_create_badLogger(self):
+            # Creating without a K2Logger should fail
+            self.assertRaises(TypeError, settings.K2Settings, 'String')
+    
     
     def test_loadArgs(self):
         # We should be able to load some number of arguments
