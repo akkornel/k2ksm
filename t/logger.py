@@ -51,7 +51,6 @@ class K2LoggerTests(unittest.TestCase):
             l = logger.K2Logger('Karl')
             del l.namePrefix
     
-    
     def test_logger(self):
         # The logger attribute should be a Logger object
         l = logger.K2Logger('Karl')
@@ -71,19 +70,49 @@ class K2LoggerTests(unittest.TestCase):
             l = logger.K2Logger('Karl')
             del l.logger
 
+    def test_logStderr_false(self):
+        l = logger.K2Logger('Karl')
+        l.logToStderr = False
     
-    # TODO: Add test cases for logToStderr, logToSyslog, and loggerForModule
+    if canSkipOrFail:
+        def test_logStderr_nonBoolean(self):
+            # Passing a non-boolean should fail
+            l = logger.K2Logger('Karl')
+            self.assertRaises(TypeError, l.__setattr__, 'logToStderr', 'Karl')
+    
+    def test_logSyslog_true(self):
+        l = logger.K2Logger('Karl')
+        l.logToSyslog = True
+    
+    def test_logSyslog_tf(self):
+        l = logger.K2Logger('Karl')
+        l.logToSyslog = True
+        l.logToSyslog = False
+    
+    if canSkipOrFail:
+        def test_logSyslog_nonBoolean(self):
+            l = logger.K2Logger('Karl')
+            self.assertRaises(TypeError, l.__setattr__, 'logToSyslog', 'Karl')
+    
+    
+    
+    # TODO: Add test cases for loggerForModule
     # Also, try to actually log stuff, to see if it works!
-    # Finally, add an extra test for Windows.
         
         
 # List the tests and create a test suite, for use by the top-level test script.
 tests = ('test_create',
-         'test_namePrefix_get'
-         'test_logger')
+         'test_namePrefix_get',
+         'test_logger',
+         'test_logStderr_false',
+         'test_logSyslog_true', 'test_logSyslog_tf',
+         )
 skippedTests = ('test_create_badName',
                 'test_namePrefix_set', 'test_namePrefix_delete',
-                'test_logger_set', 'test_logger_delete')
+                'test_logger_set', 'test_logger_delete',
+                'test_logStderr_nonBoolean',
+                'test_logSyslog_nonBoolean',
+                )
 if canSkipOrFail:
     K2LoggerTestSuite = unittest.TestSuite(map(K2LoggerTests, (tests + skippedTests)))
 else:
