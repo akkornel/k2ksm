@@ -24,7 +24,7 @@ class K2LoggerTests(unittest.TestCase):
     def setUp(self):
         self.l = logger.K2Logger('Karl')
         
-    def testDown(self):
+    def tearDown(self):
         self.l = None
         
 
