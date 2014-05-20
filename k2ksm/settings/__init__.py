@@ -1,5 +1,6 @@
 
 from abc import ABCMeta, abstractmethod
+from ConfigParser import RawConfigParser
 from sys import argv
 from ..exceptions import K2FinalizeError
 from ..logger import K2Logger
@@ -164,9 +165,24 @@ class K2Settings(object):
             raise K2FinalizeError('Can not load new configuration, ' \
                                   + 'settings finalized')
         
+        
         self.logger.info('Loading configuration from path ' + config)
         self.configPath = config
-        # TODO
+        
+        # Read in our configuration
+        parser = RawConfigParser()
+        parser.read(self.configPath)
+        self.logger.debug('ConfigParser complete')
+        
+        # Each section is a module name; the options in the section are
+        # settings to be copied into __unusedSettings, and then processed
+        for section in parser.sections():
+            if (section not in self.__unusedSettings):
+                self.__unusedSettings[section] = {}
+            for setting in parser.options(section):
+                self.__unusedSettings[section][setting] = parser.get(section, \
+                                                                     setting)
+            self.processUnused(section)
     
     
     @classmethod
